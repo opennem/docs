@@ -1,8 +1,10 @@
 # Open Electricity Documentation
 
-Source for the Open Electricity documentation, live at **https://docs.openelectricity.org.au**.
+![logo](https://platform.openelectricity.org.au/oe_logo_full.png)
 
-Built with [Tangly](https://tangly.dev) ([GitHub](https://github.com/tanglydocs/tangly)), a self-hosted, open-source docs framework that renders a Mintlify-style `docs.json` unmodified. Pages are MDX; navigation, theme, and the API reference are configured in `docs.json`.
+The OpenElectricity project (formerly OpenNEM) aims to make the wealth of public Australian energy data more accessible to a wider audience. Project homepage at [openelectricity.org.au](https://openelectricity.org.au).
+
+This repo holds the source for the documentation, live at **https://docs.openelectricity.org.au**, built with [Tangly](https://tangly.dev) ([GitHub](https://github.com/tanglydocs/tangly)), a self-hosted, open-source docs framework that renders a Mintlify-style `docs.json` unmodified. Pages are MDX; navigation, theme, and the API reference are configured in `docs.json`.
 
 ## Quick start
 
