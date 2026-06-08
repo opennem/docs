@@ -1,0 +1,67 @@
+name: preview
+
+# Build a Cloudflare Pages preview for each pull request and comment the URL.
+# Runs only for same-repo branches (fork PRs do not have access to the deploy
+# secrets); maintainers can re-push a fork's branch to preview it.
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: Deploy PR preview
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate
+        run: bun run check
+
+      - name: Build (dev OpenAPI)
+        env:
+          TANGLY_OPENAPI_URL: https://api.oedev.org/openapi.json
+        run: bun run build
+
+      - name: Deploy preview to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # PR number is an integer; safe to interpolate as a branch label.
+          command: pages deploy dist --project-name openelectricity-docs --branch pr-${{ github.event.number }}
+
+      - name: Comment preview URL
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.deployment-url }}
+        with:
+          script: |
+            const url = process.env.PREVIEW_URL;
+            if (!url) return;
+            const body = `Preview deployed: ${url}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const marker = "Preview deployed:";
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.find((c) => c.body && c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

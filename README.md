@@ -1,57 +1,57 @@
 # Open Electricity Documentation
 
-Documentation lives at https://docs.openelectricity.org.au
+Source for the Open Electricity documentation, live at **https://docs.openelectricity.org.au**.
 
-This folder contains the documentation for Open Electricity, built with [Tangly](https://tangly.dev) (renders the Mintlify-style `docs.json` unmodified).
+Built with [Tangly](https://tangly.dev) ([GitHub](https://github.com/tanglydocs/tangly)), a self-hosted, open-source docs framework that renders a Mintlify-style `docs.json` unmodified. Pages are MDX; navigation, theme, and the API reference are configured in `docs.json`.
 
-## Prerequisites
+## Quick start
 
-- Node.js v19+ and [bun](https://bun.sh)
-
-## Installation
-
-Install dependencies from within the `docs/` folder:
+Requires [bun](https://bun.sh) (Node 19+).
 
 ```bash
-cd docs/
 bun install
+bun run dev        # http://localhost:9411 (override with PORT)
 ```
-
-## Development
-
-```bash
-bun run dev
-```
-
-The documentation will be available at http://localhost:9411 (override with `PORT`).
-
-## Build
 
 ```bash
 bun run build      # static build -> ./dist
 bun run preview    # serve ./dist locally
-```
-
-## Validate
-
-```bash
 bun run check      # tangly check --strict (config, nav, links, frontmatter)
 ```
 
-## Configuration
+## Layout
 
-The documentation is configured in `docs.json`. See the [Tangly documentation](https://tangly.dev) for configuration options.
+| Path | What |
+|------|------|
+| `docs.json` | Site config: nav, theme, colors, API reference. See the [Tangly docs](https://tangly.dev) for options. |
+| `*.mdx`, `guides/`, `sdk/`, `howto/`, `platform/`, `contribute/` | Documentation pages |
+| `api-reference/` | OpenAPI-driven API pages |
+| `images/` | Static assets, served from `/images/...` |
 
 ## OpenAPI
 
-API reference pages read the OpenAPI spec from the URL in `docs.json` (`api.openapi`). The `TANGLY_OPENAPI_URL` env var overrides it at build time (dev builds use `https://api.oedev.org/openapi.json`).
+API reference pages read the spec from `docs.json` (`api.openapi`). `TANGLY_OPENAPI_URL` overrides it at build time. Preview builds use the dev API (`https://api.oedev.org/openapi.json`); production uses the default in `docs.json`.
 
-## Publishing
+## Contributing
 
-Deployed to Cloudflare Pages via GitHub Actions:
+Edits and new pages are welcome. See **[CONTRIBUTING.md](./CONTRIBUTING.md)** for the full guide. In short:
 
-- **Pull requests** — `.github/workflows/docs-preview.yml` builds a preview and comments the URL.
-- **`main`** — `.github/workflows/docs-deploy.yml` deploys to **docs.oedev.org** (dev OpenAPI).
-- **`production`** — same workflow deploys to **docs.openelectricity.org.au** (prod OpenAPI), gated by the `docs-production` environment.
+1. Branch, edit or add an `.mdx` page, and wire it into `docs.json` navigation.
+2. `bun run check` to validate; `bun run dev` to preview locally.
+3. Open a PR. CI builds a **preview deployment** and comments the URL.
+4. On merge to `main`, the site **deploys automatically** to production.
 
-Only changes under `docs/**` trigger these workflows.
+For component syntax, frontmatter, and config options, see the [Tangly documentation](https://tangly.dev).
+
+## Deployment
+
+Push-to-deploy via Cloudflare Pages (GitHub Actions):
+
+- **Pull requests** -> `.github/workflows/preview.yml` builds a preview and comments the URL.
+- **`main`** -> `.github/workflows/deploy.yml` builds and deploys to **docs.openelectricity.org.au**.
+
+Deploys require `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets.
+
+## License
+
+[MIT](./LICENSE). Part of the [Open Electricity](https://openelectricity.org.au) project.

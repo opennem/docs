@@ -1,0 +1,45 @@
+name: deploy
+
+# Push-to-deploy: a merge to `main` ships to production
+# (docs.openelectricity.org.au). PR previews are handled by preview.yml.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to production (docs.openelectricity.org.au)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate
+        run: bun run check
+
+      - name: Build
+        run: bun run build
+
+      - name: Deploy to Cloudflare Pages (production)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # --branch production marks this as a *production* deployment on the
+          # openelectricity-docs-prod project (its production branch is "production"),
+          # regardless of the git branch the build ran from.
+          command: pages deploy dist --project-name openelectricity-docs-prod --branch production
