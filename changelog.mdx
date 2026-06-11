@@ -6,6 +6,29 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.4" description="June 11, 2026" tags={["Data", "API"]}>
+
+## Data Quality & Backlog Repair
+
+A major historical data repair campaign: a full audit of June 2009 to present, with gaps filled, bad values corrected and every aggregate rebuilt from source.
+
+- **Daylight-saving ingestion repair** - Fixed a +1 hour timestamp shift affecting roughly 2–3 weeks of NEM data after every October daylight-saving changeover from 2007 to 2023; affected periods were re-ingested from AEMO MMSDM archives and all downstream aggregates rebuilt ([#559](https://github.com/opennem/opennem/issues/559))
+- **Rooftop solar backfill (2015–2016)** - The synthetic rooftop backfill series is now included in generation and market value aggregates, making NEM rooftop solar continuous from March 2015 and closing a ~16-month gap in solar series
+- **WA rooftop gap fill** - Recovered 287 missing days of APVI rooftop data across 2015–2016, and fixed a client crash on older API payloads that was the original cause of the gaps
+- **Demand gaps** - Filled missing NEM demand intervals from NEMWeb
+- **Negative generation clamp** - Renewable generation totals no longer count negative unit scada intervals (auxiliary loads while a unit is powered but not generating); applies to renewable energy calculations, records and milestones ([#561](https://github.com/opennem/opennem/issues/561))
+- **Renewable proportion validation** - Rooftop solar is now included in gross demand and renewable generation in the market summary, renewable proportion records are bounded and validated against the rebuilt data, and a facility network assignment that leaked WA hydro into NEM totals was corrected ([#558](https://github.com/opennem/opennem/issues/558))
+- **Full re-aggregation** - All aggregates and rollup views rebuilt from June 2009 to present; all static energy, monthly and daily exports regenerated
+
+## Bug Fixes
+
+- **Facility storage capacity** - Stale unit storage capacity values persisted after removal in the facility CMS; the sync now clears them, fixing a wind farm reporting battery storage ([#560](https://github.com/opennem/opennem/issues/560))
+- **Crawler efficiency** - Missing-interval detection now aligns to each crawler's native interval, so 30-minute and hourly crawlers (e.g. rooftop) no longer re-read their entire window every run
+- **API data range** - API keys with extended data-range access were incorrectly capped at the default range ([#555](https://github.com/opennem/opennem/issues/555), [#557](https://github.com/opennem/opennem/pull/557))
+- **Historical NEM ingestion** - Chunked dispatch region upserts and tolerate pre-2020 AEMO files missing curtailment fields ([#559](https://github.com/opennem/opennem/issues/559))
+
+</Update>
+
 <Update label="v4.5.3" description="June 4, 2026" tags={["API", "Data", "Docs"]}>
 
 ## Bug Fixes
