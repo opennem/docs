@@ -6,6 +6,24 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.5" description="June 23, 2026" tags={["API", "Data"]}>
+
+## Bug Fixes
+
+- **No more spurious zeros on the latest interval** - The most recent 5-minute interval is provisional while AEMO data is still settling, which could briefly surface a `0` for renewable proportion or emissions that healed on the next request. Live `/v4/data` and `/v4/market` responses now stop at the last fully-settled interval, and renewable proportion returns `null` (not `0`) when gross demand has not landed yet ([#575](https://github.com/opennem/opennem/issues/575), [#576](https://github.com/opennem/opennem/pull/576), [#577](https://github.com/opennem/opennem/pull/577))
+
+## Reliability
+
+- **ClickHouse memory guard** - The API serving path now caps per-query memory and spills large aggregations to disk, so a single heavy request can no longer exhaust the database ([#564](https://github.com/opennem/opennem/pull/564))
+- **CMS sync resilience** - Facility sync now retries transient Sanity CMS timeouts and Postgres deadlocks instead of failing the run ([#566](https://github.com/opennem/opennem/pull/566), [#568](https://github.com/opennem/opennem/pull/568))
+- **Export upload retries** - Static export uploads to R2 storage now retry on transient network errors ([#570](https://github.com/opennem/opennem/pull/570))
+
+## Documentation
+
+- **Metrics known-issues refreshed** - Removed the stale MARKET MW summing and HOUR-interval analyzer-error warnings from the [metrics reference](/api-reference/metrics); both were fixed in v4.5.1 and the page now documents the corrected aggregation behaviour ([#562](https://github.com/opennem/opennem/issues/562))
+
+</Update>
+
 <Update label="v4.5.4" description="June 11, 2026" tags={["Data", "API"]}>
 
 ## Data Quality & Backlog Repair
