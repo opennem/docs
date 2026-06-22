@@ -82,25 +82,14 @@ See the [Energy guide](/guides/energy) for the full derivation and worked exampl
 
 `renewable_proportion` and `renewable_with_storage_proportion` are ratios computed over the *whole* queried window per row, not averaged from the underlying 5-minute proportions. The sums of the numerator and denominator are taken first, then divided.
 
-## Known issues
+## Aggregation correctness
 
-<Warning>
-**MARKET MW metrics are currently summed across intervals**, when they should be averaged. Affects: `demand`, `demand_gross`, `generation_renewable`, `generation_renewable_with_storage`, `curtailment`, `curtailment_solar_utility`, `curtailment_wind`, `flow_imports`, `flow_exports` on `/v4/market/network/{network_code}` at any interval above 5-minute.
+All endpoints aggregate metrics correctly at every interval. MW-class metrics are averaged across the 5-minute intervals in each bucket, and energy and market-value metrics are summed — per the table above — on `/v4/market/network/{network_code}`, `/v4/data/network/{network_code}` and `/v4/data/facilities/{network_code}`, including batteries (`storage_battery`).
 
-For example, requesting `demand` at `interval=hour` will return a value 12× larger than the true hourly average demand. The corresponding `*_energy` metric (e.g. `demand_energy`) is unaffected — it returns the correct total energy.
+Two earlier issues have been resolved and need no workaround:
 
-**Workaround:** divide the returned value by the number of 5-minute intervals in the requested period (12 per hour, 288 per day, etc.).
-
-Tracked in [opennem#525](https://github.com/opennem/opennem/issues/525) (follow-up to the DATA/FACILITY fix in [opennem#523](https://github.com/opennem/opennem/issues/523)). A fix is in progress — it requires restructuring the query builder to use a subquery for derived ratio metrics like `renewable_proportion`.
-</Warning>
-
-<Warning>
-**The HOUR interval on `/v4/market/network/{network_code}` will server-error if you request both `renewable_proportion` (or `renewable_with_storage_proportion`) and `generation_renewable` (or `generation_renewable_with_storage`, `demand_gross`) in the same call.** This is a ClickHouse analyzer limitation that the query builder will work around once [opennem#525](https://github.com/opennem/opennem/issues/525) lands. As a workaround, request the proportion separately from the generation metrics, or use a daily/longer interval which is unaffected.
-</Warning>
-
-## Generation aggregation — fully fixed
-
-`/v4/data/network/{network_code}` and `/v4/data/facilities/{network_code}` return correct averages and sums per the table above, including for batteries (`storage_battery`). The behaviour was corrected in [opennem#523](https://github.com/opennem/opennem/issues/523) — prior to that fix, `power` was summed across 5-minute intervals which produced values 12× the true hourly average.
+- **MARKET MW metrics are now averaged** above the 5-minute interval (previously summed, returning values 12× too large at `interval=hour`). Fixed in [opennem#525](https://github.com/opennem/opennem/issues/525), the MARKET follow-up to the DATA/FACILITY fix in [opennem#523](https://github.com/opennem/opennem/issues/523), by restructuring the query builder so an inner subquery pre-aggregates per 5-minute interval and the outer query applies the bucket average.
+- **Proportion and generation metrics can be requested together** at the HOUR interval. The earlier ClickHouse analyzer error — when `renewable_proportion` (or `renewable_with_storage_proportion`) was requested alongside `generation_renewable`, `generation_renewable_with_storage` or `demand_gross` — no longer occurs: both read shared per-interval sums from the same subquery.
 
 ## See also
 
