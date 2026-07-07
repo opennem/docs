@@ -6,6 +6,41 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.8" description="July 7, 2026" tags={["Data", "API"]}>
+
+## Data Quality
+
+- **Curtailment history gaps filled** - Solar and wind curtailment series showed recurring blocks of `0` in months where AEMO's semi-scheduled curtailment fields were missing from ingestion, rather than a genuine zero. We re-ingested `DISPATCHREGIONSUM` from the AEMO MMSDM archives across the 24 affected months (September 2020 to August 2024), re-aggregated the market summary and regenerated every static export; curtailment is now continuous from September 2020 — the point at which AEMO began publishing the semi-scheduled fields ([#578](https://github.com/opennem/opennem/issues/578))
+
+## Reliability
+
+- **AEMO archive ingestion** - AEMO changed its MMSDM historical-archive filename format in August 2024 (`PUBLIC_ARCHIVE#<TABLE>#FILE01#…`, where `#` is served url-encoded). The MMS crawlers now recognise both the legacy and new naming, so historical backfills from August 2024 onward no longer silently skip files ([#593](https://github.com/opennem/opennem/issues/593), [#594](https://github.com/opennem/opennem/pull/594))
+
+</Update>
+
+<Update label="v4.5.7" description="July 6, 2026" tags={["Data", "API"]}>
+
+## Data Quality
+
+- **Rooftop solar edge gaps** - Rooftop solar generation and forecast series no longer show intermittent nulls at the edges of a request window; forecast and generation windows are snapped to the 30-minute grid and rooftop is carried forward to the core-generation edge ([#579](https://github.com/opennem/opennem/issues/579), [#587](https://github.com/opennem/opennem/pull/587), [#591](https://github.com/opennem/opennem/pull/591))
+- **Battery storage excluded from renewables** - Battery storage discharge is no longer counted toward renewable and fossil generation totals in the milestone/record materialized views, correcting an erroneous WA fossil-share record ([#585](https://github.com/opennem/opennem/issues/585), [#589](https://github.com/opennem/opennem/pull/589))
+
+## Reliability
+
+- **Worker stability** - Interval-check ClickHouse writes now run off the async event loop, preventing the worker from starving its Postgres connection pool during incremental aggregation ([#572](https://github.com/opennem/opennem/issues/572), [#588](https://github.com/opennem/opennem/pull/588))
+- **Crawler noise reduction** - Rolled-off rooftop intervals now age out of missing-interval detection, and expected NEMWeb fetch messages are downgraded from errors, cutting re-read thrash and log noise ([#590](https://github.com/opennem/opennem/pull/590))
+- **CMS webhook resilience** - Fixed a Sanity seen-range SQL alias and quieted expected webhook errors ([#586](https://github.com/opennem/opennem/pull/586))
+
+</Update>
+
+<Update label="v4.5.6" description="July 6, 2026" tags={["Data"]}>
+
+## Reliability
+
+- **Milestone social posts restored** - Milestone and weekly-summary social posts were silently failing to render in the production container due to a Chromium sandbox flag; the renderer now passes the required flags so automated posts publish again ([#583](https://github.com/opennem/opennem/pull/583))
+
+</Update>
+
 <Update label="v4.5.5" description="June 23, 2026" tags={["API", "Data"]}>
 
 ## Bug Fixes
