@@ -6,6 +6,23 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.9" description="August 5, 2026" tags={["Data", "API"]}>
+
+## Data Quality
+
+- **Demand energy unit fix** - The market summary's energy columns (demand, gross demand, renewable generation and curtailment energy, plus their derived market values) were stored 1,000x too low — values were gigawatt hours but labelled megawatt hours. All seven columns are now stored in true MWh, ClickHouse aggregates and rollup views have been rebuilt from 1999 to present, and static energy exports regenerated. Demand energy records were purged and rebuilt with uniform MWh units — the series previously mixed unit regimes, freezing record highs for ~15 years. July 2026 is confirmed as a genuine new Victorian monthly demand record (4,744,905 MWh, ahead of 4,707,075 MWh set in 2010) ([#605](https://github.com/opennem/opennem/issues/605), [#606](https://github.com/opennem/opennem/pull/606))
+- **WEM historical generation restored** - WEM (Western Australia) facility generation was almost entirely null before December 2013, as AEMO published no instantaneous output quantity in that era. Generation is now derived from published energy, with history backfilled and all aggregates rebuilt — WEM facility series are now continuous from market start ([#598](https://github.com/opennem/opennem/issues/598), [#600](https://github.com/opennem/opennem/pull/600))
+
+## API
+
+- **Commissioning unit status** - The facilities endpoint now derives a `commissioning` status: operating units whose maximum observed generation is at or below 90% of capacity report `status_id=commissioning` and are excluded from `operating` filters. The status is computed on read and mirrors the Open Electricity website rule ([#602](https://github.com/opennem/opennem/pull/602))
+
+## Reliability
+
+- **Milestone social cards** - Fixed the production container environment so automated milestone social card images render again ([#597](https://github.com/opennem/opennem/pull/597))
+
+</Update>
+
 <Update label="v4.5.8" description="July 7, 2026" tags={["Data", "API"]}>
 
 ## Data Quality
