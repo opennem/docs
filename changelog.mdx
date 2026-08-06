@@ -6,6 +6,14 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.10" description="August 6, 2026" tags={["Data"]}>
+
+## Bug Fixes
+
+- **Tracker curtailment display** - Hotfix for a v4.5.9 regression: curtailment on tracker views longer than 7 days read 1,000x too high. The v3 static export serves every energy series in GWh, but curtailment series were exported as raw values labelled MWh — masked until v4.5.9 because the stored values happened to be GWh-scale. Curtailment energy series are now exported in GWh like every other energy series, and all affected static exports (2020 onward, including per-region files) have been regenerated. The v4 API `curtailment_*_energy` metrics were unaffected and remain in MWh ([#607](https://github.com/opennem/opennem/issues/607), [#614](https://github.com/opennem/opennem/pull/614))
+
+</Update>
+
 <Update label="v4.5.9" description="August 5, 2026" tags={["Data", "API"]}>
 
 ## Data Quality
