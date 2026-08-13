@@ -23,6 +23,7 @@ Stay up to date with the latest features, improvements, and bug fixes in Open El
 ## Reliability
 
 - **Alerting on silently dropped facility data** - The ClickHouse ingest joins facility data to units, facilities and fueltech, and any code failing one of those joins was discarded with no warning — the mechanism that hid roughly 19,900 GWh of WEM history until it was found by hand earlier this year. A daily check now reports any code carrying energy that the ingest would drop, covering both unmapped codes and units missing a fueltech or facility ([#604](https://github.com/opennem/opennem/issues/604), [#624](https://github.com/opennem/opennem/pull/624))
+- **Alerting on frozen generation telemetry** - When a unit's telemetry link fails, AEMO republishes the last value it saw rather than a gap, so the reading stays within the unit's capacity and is present in every interval — passing both range and completeness checks. A solar farm frozen this way reports full output through the night, inflating its energy for as long as the fault lasts. A daily check now looks for solar units generating overnight, which no working plant does. Run across eleven years of NEM history it identifies 22 such incidents totalling roughly 8.6 GWh of generation that never occurred; those historical figures are unchanged for now, as no corrected source exists to restore them from ([#544](https://github.com/opennem/opennem/issues/544), [#628](https://github.com/opennem/opennem/pull/628))
 
 </Update>
 
