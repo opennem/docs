@@ -8,6 +8,13 @@ Stay up to date with the latest features, improvements, and bug fixes in Open El
 
 <Update label="v4.5.11" description="August 13, 2026" tags={["Data", "API"]}>
 
+## Facility Locations and Boundaries
+
+- **Facility coordinates and site boundaries improved** - Facility geography was matched against OpenStreetMap and every proposed change reviewed by hand before it was applied. 151 facilities were updated: 119 gained a link to their OpenStreetMap site, and 32 had their coordinate corrected without a link change. 381 facilities now carry a site boundary, up from 316. Several coordinates were materially wrong rather than merely imprecise, including Bango Wind Farm, which sat 24 km from the wind farm it describes. Every proposal was accepted or rejected individually, and 94 were rejected, most often because the nearest OpenStreetMap object belonged to a different plant sharing the site. A battery co-located at a solar farm is a common case: the two are separate units and only one of them owns the polygon ([#481](https://github.com/opennem/opennem/issues/481))
+- **OpenStreetMap relations resolve correctly** - Site geometry is stored against an OpenStreetMap id whose sign indicates whether it refers to a way or a relation, and that convention had not held in the stored data. Because most large wind and solar farms are mapped as relations, the lookup was failing for exactly the largest sites. Ids are now resolved as either type before failing ([#481](https://github.com/opennem/opennem/issues/481), [#634](https://github.com/opennem/opennem/pull/634))
+
+Wind farms remain a known gap. Their turbines are mapped in OpenStreetMap as individual points rather than an enclosing area, so a site relation for a wind farm often encloses no polygon at all and no boundary can be derived from it. Per-turbine geometry is tracked separately ([#635](https://github.com/opennem/opennem/issues/635)).
+
 ## Bug Fixes
 
 - **NEM data now starts at market open** - Facility data for the NEM began at 1 January 1999, six days after the market itself. The records were always in the database (706,205 intervals across 134 units and all four mainland regions from 7 December 1998), but the network's `data_first_seen` was pinned to 1999, which bounded the ClickHouse backfill and left December 1998 unaggregated and unservable. That month is now aggregated and available through the API and exports, and market summary (demand and price) now starts at 13 December 1998, the first interval AEMO published ([#615](https://github.com/opennem/opennem/issues/615), [#621](https://github.com/opennem/opennem/pull/621))
