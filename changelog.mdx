@@ -6,6 +6,25 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.12" description="September 8, 2026" tags={["Data", "Records"]}>
+
+## Records
+
+- **False daily demand low records removed** - From early August the records page reported a new NEM daily demand low every few days, at values between 479 and 567 GWh, when the true record is 384 GWh set on 27 December 2025. The same false lows appeared for every NEM region and for WEM. The v4.5.9 rebuild of demand energy records used a query that could never emit a low record: it hard-coded the per-period interval count to 1 while the completeness guard for lows requires a full period (288 intervals for a day). Every demand low chain came back empty, and the five-minute record check then treated the first day it saw as a record and every lower day after it as another. Demand records have been rebuilt with full history, and the repair now fails if any period is missing either its high or its low chain ([#640](https://github.com/opennem/opennem/issues/640))
+- **Record times inside daylight saving corrected** - Interval records between October and April were reported one hour later than the same peak in the API and tracker. The June re-ingest that removed the daylight saving shift from NEM history (v4.5.4) rebuilt the aggregates and exports but not the records table, so records generated before it still carried the shifted timestamps. All records have been regenerated from the corrected data. The 27 November 2018 battery discharge high, for example, now reads 09:45 as it does in the API rather than 10:45 ([#641](https://github.com/opennem/opennem/issues/641))
+- **WEM demand energy records were six times too high** - Every WEM demand energy record was wrong, with annual values around 105 TWh against a real WEM total near 18 TWh. See below ([#642](https://github.com/opennem/opennem/issues/642))
+
+## Bug Fixes
+
+- **WEM demand energy six times too high in the market summary** - Energy for WEM was computed as if each row covered thirty minutes, while the market summary has been on a five-minute grid since 2012. All eleven energy and market value columns were affected, including the `au.wem.demand.energy` and `au.wem.demand.market_value` series in the static energy exports, which reported around 306 GWh a day for 2025 rather than about 51. The stored history has been rescaled, the daily and monthly rollups rebuilt, and the WEM energy exports regenerated ([#642](https://github.com/opennem/opennem/issues/642))
+- **Duplicate WEM region rows** - Between September 2023 and December 2024 the market summary carried a second, identical set of WEM rows under the transitional `WEMDE` region code, so any total across regions counted WEM twice in that window. The 19 February 2024 daily demand record read 968 GWh for that reason. Region rows are now restricted to each network's declared regions, and the duplicate rows have been removed ([#642](https://github.com/opennem/opennem/issues/642))
+
+## Reliability
+
+- **Record rebuilds are now protected from the live record check** - Rebuilding the records table takes several minutes, and the five-minute record check running against a partially rebuilt table was the mechanism behind the false lows above. A rebuild now holds a database lock for its duration and the live check skips its run while the lock is held. A rehearsal on the development environment confirmed the failure mode: one unguarded run minted 3,748 false records, the guarded run minted none ([#640](https://github.com/opennem/opennem/issues/640))
+
+</Update>
+
 <Update label="v4.5.11" description="August 14, 2026" tags={["Data", "API"]}>
 
 ## Facility Locations and Boundaries
