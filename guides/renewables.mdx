@@ -87,10 +87,10 @@ The [records](https://openelectricity.org.au/records) feed tracks the highest an
 
 - **Interval records** use a single 5-minute interval. The NEM figure is total renewable generation across all five regions divided by their total gross demand, not an average of the regional percentages.
 - **Day, month, quarter and year records** divide total renewable generation by total gross demand across every interval in the period. This is an energy-weighted share, not an average of interval percentages.
-- **Complete data only.** A value is only calculated when every input it needs is present for every region and every interval in the period: operational demand, generation and, in the NEM since late October 2015, rooftop solar. If any input is missing, that interval or period is skipped rather than calculated on partial data, so a gap in rooftop or demand data can't produce a false record.
-- **Rooftop delay.** Rooftop solar estimates arrive 30 minutes to 2 hours after the interval they cover, so a new renewable proportion record can appear up to a couple of hours after it happened.
-- **History.** Records start in June 2007. NEM rooftop solar data starts in late October 2015, so earlier records leave rooftop out of both the numerator and the denominator. WEM periods before the October 2023 move to 5-minute data use the 30-minute data as it is.
-- **Bounds.** Values are rounded to two decimal places. Anything above 200% is treated as a data error and discarded.
+- **Confirmed data.** Every record is calculated from confirmed data for every region and every interval in the period: operational demand, generation and, in the NEM since October 2015, rooftop solar.
+- **Timing.** Records are published once rooftop solar estimates for the interval are in, usually 30 minutes to 2 hours after it.
+- **History.** Records start in June 2007. NEM records include rooftop solar from October 2015. WEM records before October 2023 are calculated from 30-minute data.
+- **Precision.** Values are shown to two decimal places.
 
 ## Available API Metrics
 
