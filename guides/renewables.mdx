@@ -75,11 +75,10 @@ Our `renewable_proportion` differs from AEMO's storage-adjusted metric in that w
 
 ### Instantaneous renewable share
 
-AEMO's real-time headline figures, such as renewables supplying 80% of the NEM for the first time on 19 September 2026, are renewable generation as a share of **total generation**. Our `renewable_proportion` is renewable generation as a share of **gross demand**. Across the whole NEM the two usually agree to within 1 to 2 percentage points. They differ for three reasons:
+AEMO's instantaneous renewable penetration, the figure behind headlines such as renewables supplying 80% of the NEM for the first time on 19 September 2026, is renewable generation as a share of **total generation** (NEM generation plus estimated rooftop solar), calculated for each half hour. Our `renewable_proportion` is renewable generation as a share of **gross demand**, calculated for each 5-minute interval. Both count wind, utility and rooftop solar, hydro, bioenergy and battery discharge as renewable, and neither counts battery charging or hydro pumping. They differ in two ways:
 
 - **Denominator.** Total generation measures what is produced; gross demand measures what is consumed. Within a region the difference is mostly imports and exports, so a region that exports can supply more than its own demand from renewables and show a proportion above 100%, as South Australia and Tasmania regularly do. We show this deliberately. Across the whole NEM, interconnector flows between regions cancel out and the two denominators are close.
-- **Numerator.** We count battery discharge and pumped hydro generation as renewable (see above). At the midday peaks where renewable share records are set, storage is mostly charging, so this adds little.
-- **Interval noise.** Operational demand can move by several hundred megawatts from one 5-minute interval to the next, while generation changes smoothly. A peak record takes the highest single interval, which tends to be one where demand briefly dipped, so our interval record for an event can sit 1 to 2 points above the figure AEMO reports for it.
+- **Granularity.** AEMO's figure is a half-hourly value, the granularity of its rooftop solar estimates. Our interval records use 5-minute intervals, with rooftop solar interpolated to 5 minutes. Demand moves more within a half hour than generation does, so the highest 5-minute interval in an event sits above that half hour's average, typically by 1 to 2 percentage points.
 
 ## Renewable Proportion Records
 
