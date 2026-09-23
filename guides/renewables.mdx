@@ -73,6 +73,25 @@ AEMO publishes two renewable share figures in their Quarterly Energy Dynamics re
 
 Our `renewable_proportion` differs from AEMO's storage-adjusted metric in that we include battery discharge and non-hybrid pumped hydro in the renewable numerator, while AEMO excludes all storage from their adjusted figure. Our approach counts battery and pumped hydro discharge as renewable since the stored energy originated from the grid's renewable mix.
 
+### Instantaneous renewable share
+
+AEMO's real-time headline figures, such as renewables supplying 80% of the NEM for the first time on 19 September 2026, are renewable generation as a share of **total generation**. Our `renewable_proportion` is renewable generation as a share of **gross demand**. Across the whole NEM the two usually agree to within 1 to 2 percentage points. They differ for three reasons:
+
+- **Denominator.** Total generation measures what is produced; gross demand measures what is consumed. Within a region the difference is mostly imports and exports, so a region that exports can supply more than its own demand from renewables and show a proportion above 100%, as South Australia and Tasmania regularly do. We show this deliberately. Across the whole NEM, interconnector flows between regions cancel out and the two denominators are close.
+- **Numerator.** We count battery discharge and pumped hydro generation as renewable (see above). At the midday peaks where renewable share records are set, storage is mostly charging, so this adds little.
+- **Interval noise.** Operational demand can move by several hundred megawatts from one 5-minute interval to the next, while generation changes smoothly. A peak record takes the highest single interval, which tends to be one where demand briefly dipped, so our interval record for an event can sit 1 to 2 points above the figure AEMO reports for it.
+
+## Renewable Proportion Records
+
+The [records](https://openelectricity.org.au/records) feed tracks the highest and lowest `renewable_proportion` for the NEM, each NEM region and the WEM, over 5-minute intervals, days, months, quarters and years.
+
+- **Interval records** use a single 5-minute interval. The NEM figure is total renewable generation across all five regions divided by their total gross demand, not an average of the regional percentages.
+- **Day, month, quarter and year records** divide total renewable generation by total gross demand across every interval in the period. This is an energy-weighted share, not an average of interval percentages.
+- **Complete data only.** A value is only calculated when every input it needs is present for every region and every interval in the period: operational demand, generation and, in the NEM since late October 2015, rooftop solar. If any input is missing, that interval or period is skipped rather than calculated on partial data, so a gap in rooftop or demand data can't produce a false record.
+- **Rooftop delay.** Rooftop solar estimates arrive 30 minutes to 2 hours after the interval they cover, so a new renewable proportion record can appear up to a couple of hours after it happened.
+- **History.** Records start in June 2007. NEM rooftop solar data starts in late October 2015, so earlier records leave rooftop out of both the numerator and the denominator. WEM periods before the October 2023 move to 5-minute data use the 30-minute data as it is.
+- **Bounds.** Values are rounded to two decimal places. Anything above 200% is treated as a data error and discarded.
+
 ## Available API Metrics
 
 | Metric | Unit | Description |
