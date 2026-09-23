@@ -4,10 +4,6 @@ icon: 'chart-line'
 sidebarTitle: 'Demand'
 ---
 
-<Note>
-We're working on a new **gross demand** metric and **renewable proportion** calculation. Track progress in [#398](https://github.com/opennem/opennem/issues/398).
-</Note>
-
 <Frame>
 <img src="/images/tod_chart.png" alt="time of day chart on open electricity" />
 </Frame>
@@ -42,24 +38,45 @@ As more rooftop solar gets installed, and more home batteries rolled out, the ga
 
 ## Demand Metrics in Open Electricity
 
-Open Electricity sources demand from AEMO's `DISPATCHREGIONSUM` table:
+Open Electricity sources demand from AEMO's `DISPATCHREGIONSUM` table and AEMO's rooftop solar estimates:
 
 | Metric | AEMO Source Field | Description |
 |---|---|---|
 | `demand` | `TOTALDEMAND` | Scheduled demand, met by scheduled + semi-scheduled generation and interconnector flows |
 | `demand_energy` | Calculated | Energy derived from demand over the interval (MWh) |
+| `demand_gross` | `DEMAND_AND_NONSCHEDGEN` + rooftop solar | [Gross demand](#gross-demand): operational demand plus rooftop solar generation |
+| `demand_gross_energy` | Calculated | Energy derived from gross demand over the interval (MWh) |
 
 ### Scheduled vs operational vs underlying demand
 
 "Demand" means different things depending on how much generation you can see:
 
-- **Scheduled demand** (`TOTALDEMAND`) is what NEMDE dispatches against. It only includes load visible to the dispatch engine: large industrial consumers and distribution network load as seen at transmission connection points. This is the demand figure Open Electricity uses.
+- **Scheduled demand** (`TOTALDEMAND`) is what NEMDE dispatches against. It only includes load visible to the dispatch engine: large industrial consumers and distribution network load as seen at transmission connection points. This is Open Electricity's `demand` metric.
 
 - **Operational demand** (`DEMAND_AND_NONSCHEDGEN`) adds non-scheduled generation that AEMO has telemetry for (smaller wind and solar farms). It's the total demand being met by all grid-connected generation AEMO can observe.
 
 - **Underlying (or native) demand** adds embedded generation that AEMO can't see, mostly rooftop solar. This is the closest measure to true total consumption, including load being met behind the meter.
 
 The gap between scheduled and underlying demand has grown as more rooftop solar gets installed. During midday in sunny states, the difference can be substantial.
+
+---
+
+## Gross demand
+
+**Metric:** `demand_gross` (MW) / `demand_gross_energy` (MWh)
+
+Gross demand is Open Electricity's measure of total electricity consumption in a region: operational demand plus rooftop solar generation.
+
+$$
+\text{demand\_gross} = \text{operational demand} + \text{rooftop solar}
+$$
+
+- **Operational demand** is AEMO's `DEMAND_AND_NONSCHEDGEN`: demand met by scheduled, semi-scheduled and non-scheduled generation, net of interconnector flows.
+- **Rooftop solar** is AEMO's estimate of rooftop solar output for each half hour, interpolated to 5-minute intervals.
+
+Adding rooftop solar brings back the consumption met behind the meter, so gross demand sits close to underlying demand. Gross demand is the denominator of [renewable proportion](/guides/renewables#renewable-proportion).
+
+In the WEM, gross demand is total generation from WEM facilities (see [NEM vs WEM demand](#nem-vs-wem-demand)) and does not include rooftop solar.
 
 ---
 
@@ -122,7 +139,7 @@ Demand data is available via the market endpoint:
 POST /v4/market/network/{network_code}
 ```
 
-Available demand metrics: `demand`, `demand_energy`
+Available demand metrics: `demand`, `demand_energy`, `demand_gross`, `demand_gross_energy`
 
 <CodeGroup>
 
@@ -167,5 +184,5 @@ const { datatable } = await client.getMarket("NEM", ["demand", "demand_energy"],
 
 | Network | Interval | Source |
 |---|---|---|
-| NEM | 5 min | AEMO `DISPATCHREGIONSUM` (`TOTALDEMAND`) |
+| NEM | 5 min | AEMO `DISPATCHREGIONSUM` (`TOTALDEMAND`); gross demand adds AEMO rooftop solar estimates (half-hourly, interpolated to 5 min) |
 | WEM | 30 min | Derived from `facility_scada` generation totals |
