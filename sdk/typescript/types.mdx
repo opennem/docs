@@ -308,7 +308,11 @@ interface INetworkTimeSeries {
   metric: Metric
   unit: string
   interval: DataInterval
+  date_start?: string
+  date_end?: string
+  /** @deprecated use date_start */
   start: string
+  /** @deprecated use date_end */
   end: string
   groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
   results: ITimeSeriesResult[]
@@ -316,6 +320,8 @@ interface INetworkTimeSeries {
   forecast_run_time?: string | null
 }
 ```
+
+`date_start` and `date_end` are the keys the API returns, and the client sets them on every series. `start` and `end` are deprecated aliases that the client fills with the same values, so existing code keeps working. Each result's grouping values are in `columns`, e.g. `{ region: "NSW1" }`.
 
 `forecast_run_time` is the issue time of the newest forecast run used, as an ISO 8601 timestamp with the network offset. It is only present on forecast metric series, and is `null` when the values come from history loaded before run times were recorded (before October 2026).
 

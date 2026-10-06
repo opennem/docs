@@ -19,10 +19,13 @@ Stay up to date with the latest features, improvements, and bug fixes in Open El
 ### [Python client](https://github.com/opennem/openelectricity-python): `openelectricity` 0.12.0
 
 - `MarketMetric.SOLAR_ROOFTOP_FORECAST`, the `30m` interval, `forecast_run_time` on response series, and a `rooftop_forecast` example
+- `to_records()`, `to_pandas()` and `to_polars()` now report intervals in network time. They had been 10 hours late for the NEM. Rows now include the `region` column, and each row holds every metric for its interval
+- Series expose `date_start` / `date_end` and results expose `columns.region`, matching the API. `start`, `end` and `columns.network_region` still work as deprecated aliases
 
 ### [TypeScript client](https://github.com/opennem/openelectricity-typescript): `openelectricity` 0.10.0
 
 - `solar_rooftop_forecast` on `MarketMetric`, `30m` on `DataInterval`, optional `forecast_run_time` on `INetworkTimeSeries`, and a `rooftop_forecast` example
+- `INetworkTimeSeries` gains `date_start` / `date_end`, matching the API. `start` / `end` still work as deprecated aliases
 
 </Update>
 
