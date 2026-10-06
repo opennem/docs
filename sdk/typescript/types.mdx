@@ -27,10 +27,11 @@ type NetworkCode = "NEM" | "WEM" | "AU"
 Supported time intervals for data aggregation:
 
 ```typescript
-type DataInterval = "5m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
+type DataInterval = "5m" | "30m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
 ```
 
 - `5m`: 5-minute intervals
+- `30m`: 30-minute intervals
 - `1h`: Hourly intervals
 - `1d`: Daily intervals
 - `7d`: Weekly intervals
@@ -92,6 +93,7 @@ type MarketMetric =
   | "flow_exports"
   | "flow_imports_energy"
   | "flow_exports_energy"
+  | "solar_rooftop_forecast"
 ```
 
 **Price and Demand:**
@@ -117,6 +119,9 @@ type MarketMetric =
 **Interconnector Flows:**
 - `flow_imports` / `flow_imports_energy`: Region imports (MW / MWh)
 - `flow_exports` / `flow_exports_energy`: Region exports (MW / MWh)
+
+**Forecasts:**
+- `solar_rooftop_forecast`: AEMO rooftop solar forecast (MW, NEM only). Accepts a future `dateEnd`. See the [Forecasts guide](/guides/forecast)
 
 ## Grouping Types
 
@@ -308,8 +313,11 @@ interface INetworkTimeSeries {
   groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
   results: ITimeSeriesResult[]
   network_timezone_offset: string
+  forecast_run_time?: string
 }
 ```
+
+`forecast_run_time` is the issue time of the newest forecast run used, as an ISO 8601 timestamp with the network offset. It is only present on forecast metric series.
 
 ### IFacility
 

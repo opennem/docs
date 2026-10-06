@@ -197,7 +197,7 @@ type NetworkCode = "NEM" | "WEM" | "AU"
 Supported time intervals for data aggregation:
 
 ```typescript
-type DataInterval = "5m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
+type DataInterval = "5m" | "30m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
 ```
 
 ### Metric Types
@@ -215,8 +215,10 @@ type DataMetric = "power" | "energy" | "emissions" | "market_value"
 Metrics available for market data:
 
 ```typescript
-type MarketMetric = "price" | "demand" | "demand_energy"
+type MarketMetric = "price" | "demand" | "demand_energy" | ... | "solar_rooftop_forecast"
 ```
+
+See the [Type Reference](/sdk/typescript/types#marketmetric) for the full list.
 
 ### Response Types
 

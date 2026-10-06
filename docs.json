@@ -28,6 +28,7 @@
               "guides/price",
               "guides/demand",
               "guides/curtailment",
+              "guides/forecast",
               "guides/capacity",
               "guides/emissions",
               "guides/pollution",

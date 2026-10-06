@@ -175,6 +175,9 @@ def get_market(
 - `MarketMetric.FLOW_IMPORTS` / `MarketMetric.FLOW_IMPORTS_ENERGY` - Region imports (MW / MWh)
 - `MarketMetric.FLOW_EXPORTS` / `MarketMetric.FLOW_EXPORTS_ENERGY` - Region exports (MW / MWh)
 
+**Forecasts:**
+- `MarketMetric.SOLAR_ROOFTOP_FORECAST` - AEMO rooftop solar forecast (MW, NEM only). Accepts a future `date_end`, and each series carries `forecast_run_time`. See the [Forecasts guide](/guides/forecast)
+
 ### Examples
 
 **Fetch Real-time Curtailment (5-minute intervals):**
