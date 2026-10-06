@@ -313,11 +313,11 @@ interface INetworkTimeSeries {
   groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
   results: ITimeSeriesResult[]
   network_timezone_offset: string
-  forecast_run_time?: string
+  forecast_run_time?: string | null
 }
 ```
 
-`forecast_run_time` is the issue time of the newest forecast run used, as an ISO 8601 timestamp with the network offset. It is only present on forecast metric series.
+`forecast_run_time` is the issue time of the newest forecast run used, as an ISO 8601 timestamp with the network offset. It is only present on forecast metric series, and is `null` for a window covered only by forecast history with no recorded run time.
 
 ### IFacility
 
