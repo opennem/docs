@@ -360,7 +360,7 @@ Each series in `response.data` carries `date_start` and `date_end` for its data 
 
 ## Converting to DataFrames
 
-`to_records()`, `to_pandas()` and `to_polars()` return one row per interval and grouping, with a column per metric. `interval` is the network-local time as a naive datetime, and grouping columns such as `region` are included.
+`to_records()`, `to_pandas()` and `to_polars()` return one row per value by default: `interval` (the network-local time as a naive datetime), the grouping columns such as `region`, and the value under its metric name. Pass `merge_metrics=True` for one row per interval and grouping with a column per metric.
 
 ### Pandas Integration
 
@@ -375,8 +375,8 @@ response = client.get_market(
     primary_grouping="network_region"
 )
 
-# Columns: interval, region, price, demand
-df = response.to_pandas()
+# One row per interval and region. Columns: interval, region, price, demand
+df = response.to_pandas(merge_metrics=True)
 
 # Analyze
 print(df.groupby("region")[["price", "demand"]].describe())
@@ -387,7 +387,7 @@ print(df.groupby("region")[["price", "demand"]].describe())
 ```python
 import polars as pl
 
-df = response.to_polars()
+df = response.to_polars(merge_metrics=True)
 
 # Fast aggregations with Polars
 result = (
