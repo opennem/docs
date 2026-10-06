@@ -6,6 +6,59 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.16" description="October 6, 2026" tags={["Data", "API"]}>
+
+## Interconnector Flows
+
+- **Project EnergyConnect included in flows** - AEMO registered the new NSW1-SA1 interconnector (Project EnergyConnect stage 2) from 1 October 2026, and it has carried power in dispatch since the 00:05 interval that day. NSW1 and SA1 imports, exports and flow emissions now include it from that first interval. The market summary and its daily and monthly rollups have been recalculated from 1 October, and the static exports pick up the corrected values on their regular refresh. SA1 exports for 5 October read 3,997 MWh, up from 2,332 MWh, and 4 October 699 MWh, up from zero. Flow emissions are still allocated per interconnector at the exporting region's generation intensity, so the method is unchanged now that the NEM has its first loop (SA1-VIC1-NSW1) ([#650](https://github.com/opennem/opennem/issues/650), [#671](https://github.com/opennem/opennem/pull/671))
+
+## Performance
+
+- **Record history responses cached** - Record history lookups are now served from the API cache for five minutes, so repeat requests for the same record and page return without a database round trip ([#648](https://github.com/opennem/opennem/issues/648), [#673](https://github.com/opennem/opennem/pull/673))
+
+</Update>
+
+<Update label="v4.5.15" description="September 23, 2026" tags={["Records", "Data"]}>
+
+## Records
+
+Every record has been regenerated from full history with the fixes below.
+
+- **Interval records include rooftop solar** - Rooftop solar is published 30 to 60 minutes after each interval, and interval records were being set before it arrived. VIC1 generation lows were recorded at 2,544 to 3,248 MW when the settled totals were 5,450 to 6,376 MW, and SA1 renewable proportion highs at up to 199.5% when the settled values were 111 to 119%. Records for series that include rooftop solar (network and region generation totals, solar, renewables and renewable proportion) are now set once rooftop solar for the interval is published. Every other series, including coal, batteries, demand and price, is recorded as soon as its interval is available ([#652](https://github.com/opennem/opennem/issues/652))
+- **NEM demand interval records are the NEM total** - NEM-wide demand interval records were the average of the five regions rather than their sum, so 1,814 MW was published where NEM demand was 9,072 MW. Regional and daily demand records were not affected ([#653](https://github.com/opennem/opennem/issues/653))
+- **Successive records within the hour are all kept** - A new record set within 50 minutes of the previous one was dropped from the record history rather than only from notifications, so the stored record could sit below the true extreme and a later, lower value could then publish as an all-time record. Every record is now kept, and only notifications are spaced out ([#651](https://github.com/opennem/opennem/issues/651))
+- **Solar and wind low records start from their full history** - Ten solar and wind low record histories started in September 2026, so `au.nem.wind.energy.day.low`, for example, read 70,337 MWh with 5,069 lower days on record. Low records for solar now start from 26 October 2015 and for wind from 1 July 2009, and are calculated across everything since ([#654](https://github.com/opennem/opennem/issues/654), [#656](https://github.com/opennem/opennem/issues/656))
+- **Renewable proportion records are calculated from complete data** - Every renewable proportion record is calculated from intervals where rooftop solar, demand and generation are confirmed for every region in the network ([#662](https://github.com/opennem/opennem/issues/662))
+- **No records for regions outside the network** - NT1 rooftop solar, which is carried in a separate backfill dataset and is not part of the NEM, had produced `au.nem.nt1` records. Records are now limited to each network's own regions ([#666](https://github.com/opennem/opennem/issues/666))
+- **Records catch up after downtime** - Records for intervals missed while the worker was down are now filled in once it is running again ([#658](https://github.com/opennem/opennem/issues/658))
+
+## Bug Fixes
+
+- **Rooftop solar no longer reads zero at midday** - AEMO occasionally publishes a rooftop solar measurement with no value, and these were stored as 0 MW. 17 readings were affected: SA1 on 28 May 2024, and every NEM region on 5 September 2024 at 14:00 and on 10 December 2024 from 10:30 to 11:00. Those intervals are now filled from the neighbouring readings, and the market summary has been recalculated from October 2015 ([#660](https://github.com/opennem/opennem/issues/660))
+- **Gross demand and renewable proportion on 22 May 2024** - At 11:45 on 22 May 2024 AEMO published total demand including non-scheduled generation at close to zero in every NEM region while operational demand was normal, which put renewable proportion near 200% for that interval. Gross demand, renewable generation and renewable proportion are now published only where every input for the region and interval is present ([#661](https://github.com/opennem/opennem/issues/661))
+
+</Update>
+
+<Update label="v4.5.14" description="September 8, 2026" tags={["API"]}>
+
+## Reliability
+
+- **Request tracing** - A sample of API requests and the database queries behind them is now traced, so slow responses can be diagnosed from production traffic
+
+</Update>
+
+<Update label="v4.5.13" description="September 8, 2026" tags={["API", "Data"]}>
+
+## Performance
+
+- **Daily and longer intervals are much faster** - Requests at `1d` and coarser intervals now read pre-aggregated daily data for whole days, and the raw five-minute data only for a partial day at either end. A four-year monthly fuel-tech query that took around 70 seconds now returns in well under a second, and `1d` over four years no longer times out. Results are unchanged: average power is still the mean across every interval in the bucket, and the two paths were compared across 55 query shapes with no differences
+
+## Bug Fixes
+
+- **Every 30th day was one interval short** - Rebuilding the daily aggregates in 30-day chunks dropped the midnight interval of the day each chunk ended on, leaving that day about 0.35% low in energy. The daily aggregates have been rebuilt, and every day now carries all 288 intervals
+
+</Update>
+
 <Update label="v4.5.12" description="September 8, 2026" tags={["Data", "Records"]}>
 
 ## Records
