@@ -10,9 +10,17 @@ Stay up to date with the latest features, improvements, and bug fixes in Open El
 
 ## Rooftop Solar Forecast
 
-- **New `solar_rooftop_forecast` metric** - AEMO's rooftop solar forecast is now served on `/v4/market/network/NEM`, by network or region, about 8 days ahead. Rooftop solar actuals land 30 to 60 minutes behind the 5-minute data, and the forecast fills from the last actual interval forward. At `5m` each half-hourly value is repeated across its six 5-minute intervals, the same way the actual series is served, so the two line up without a seam. `date_end` can be in the future for forecast metrics, and each response block carries `forecast_run_time`, the issue time of the AEMO run used. See the [Forecasts guide](/guides/forecast) ([#675](https://github.com/opennem/opennem/issues/675))
-- **New `30m` interval** - Half-hourly buckets on the market and data endpoints, aggregated from the 5-minute data ([#675](https://github.com/opennem/opennem/issues/675))
-- **Fresher rooftop forecast** - The rooftop forecast is now collected every 30 minutes as AEMO publishes it, rather than four times a day ([#675](https://github.com/opennem/opennem/issues/675))
+- **New `solar_rooftop_forecast` metric** - AEMO's rooftop solar forecast is now served on `/v4/market/network/NEM`, by network or region, about 8 days ahead. Rooftop solar actuals land 30 to 60 minutes behind the 5-minute data, and the forecast fills from the last actual interval forward. At `5m` each half-hourly value is repeated across its six 5-minute intervals, the same way the actual series is served, so the two line up without a seam. `date_end` can be in the future for forecast metrics, and each response block carries `forecast_run_time`, the issue time of the AEMO run used. See the [Forecasts guide](/guides/forecast) ([#675](https://github.com/opennem/opennem/issues/675), [#676](https://github.com/opennem/opennem/pull/676))
+- **New `30m` interval** - Half-hourly buckets on the market and data endpoints, aggregated from the 5-minute data ([#675](https://github.com/opennem/opennem/issues/675), [#676](https://github.com/opennem/opennem/pull/676))
+- **Fresher rooftop forecast** - The rooftop forecast is now collected every 30 minutes as AEMO publishes it, rather than four times a day ([#675](https://github.com/opennem/opennem/issues/675), [#676](https://github.com/opennem/opennem/pull/676))
+
+## API
+
+- **Milestones endpoints require an API key** - Every `/v4/milestones` route now requires an API key, in line with the rest of the API. Requests without a valid key receive a `401` ([#674](https://github.com/opennem/opennem/issues/674))
+
+## Reliability
+
+- **WEM energy exports scoped to the crawl window** - The hourly WEM crawl now refreshes the energy exports only for the years its window covers, rather than every year since 2006 ([#674](https://github.com/opennem/opennem/issues/674))
 
 ## SDK Releases
 
