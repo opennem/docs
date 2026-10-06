@@ -317,7 +317,7 @@ interface INetworkTimeSeries {
 }
 ```
 
-`forecast_run_time` is the issue time of the newest forecast run used, as an ISO 8601 timestamp with the network offset. It is only present on forecast metric series, and is `null` for a window covered only by forecast history with no recorded run time.
+`forecast_run_time` is the issue time of the newest forecast run used, as an ISO 8601 timestamp with the network offset. It is only present on forecast metric series, and is `null` when the values come from history loaded before run times were recorded (before October 2026).
 
 ### IFacility
 

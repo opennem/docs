@@ -44,7 +44,7 @@ Group with `primary_grouping=network` or `primary_grouping=network_region`. The 
 
 ### Forecast run time
 
-Every forecast metric block in the response carries `forecast_run_time`: the issue time of the newest AEMO run used, as an ISO 8601 timestamp with the network offset. Rows are `[timestamp, value]` pairs, so the run time is reported once per block. It is `null` for a window covered only by forecast history with no recorded run time. Blocks for non-forecast metrics do not include it.
+Every forecast metric block in the response carries `forecast_run_time`: the issue time of the newest AEMO run used, as an ISO 8601 timestamp with the network offset. Rows are `[timestamp, value]` pairs, so the run time is reported once per block. It is `null` when the values come from history loaded before run times were recorded (before October 2026). Blocks for non-forecast metrics do not include it.
 
 ```json
 {
