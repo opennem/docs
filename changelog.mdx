@@ -6,6 +6,26 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.17" description="October 6, 2026" tags={["API", "Data", "SDK"]}>
+
+## Rooftop Solar Forecast
+
+- **New `solar_rooftop_forecast` metric** - AEMO's rooftop solar forecast is now served on `/v4/market/network/NEM`, by network or region, about 8 days ahead. Rooftop solar actuals land 30 to 60 minutes behind the 5-minute data, and the forecast fills from the last actual interval forward. At `5m` each half-hourly value is repeated across its six 5-minute intervals, the same way the actual series is served, so the two line up without a seam. `date_end` can be in the future for forecast metrics, and each response block carries `forecast_run_time`, the issue time of the AEMO run used. See the [Forecasts guide](/guides/forecast) ([#675](https://github.com/opennem/opennem/issues/675))
+- **New `30m` interval** - Half-hourly buckets on the market and data endpoints, aggregated from the 5-minute data ([#675](https://github.com/opennem/opennem/issues/675))
+- **Fresher rooftop forecast** - The rooftop forecast is now collected every 30 minutes as AEMO publishes it, rather than four times a day ([#675](https://github.com/opennem/opennem/issues/675))
+
+## SDK Releases
+
+### [Python client](https://github.com/opennem/openelectricity-python): `openelectricity` 0.12.0
+
+- `MarketMetric.SOLAR_ROOFTOP_FORECAST`, the `30m` interval, `forecast_run_time` on response series, and a `rooftop_forecast` example
+
+### [TypeScript client](https://github.com/opennem/openelectricity-typescript): `openelectricity` 0.10.0
+
+- `solar_rooftop_forecast` on `MarketMetric`, `30m` on `DataInterval`, optional `forecast_run_time` on `INetworkTimeSeries`, and a `rooftop_forecast` example
+
+</Update>
+
 <Update label="v4.5.16" description="October 6, 2026" tags={["Data", "API"]}>
 
 ## Interconnector Flows
