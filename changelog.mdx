@@ -20,6 +20,7 @@ Stay up to date with the latest features, improvements, and bug fixes in Open El
 
 ## Reliability
 
+- **Data collection falls back when the download proxy fails** - When the proxy used to fetch AEMO files stops responding, collection switches to a direct connection for five minutes rather than retrying through the proxy. On 6 October a proxy outage delayed prices, aggregates and exports for about nine hours, while 5-minute generation data stayed current. That gap has been backfilled. The data gap check now also covers dispatch prices, so a stall like this is caught and filled automatically ([#678](https://github.com/opennem/opennem/pull/678))
 - **WEM energy exports scoped to the crawl window** - The hourly WEM crawl now refreshes the energy exports only for the years its window covers, rather than every year since 2006 ([#674](https://github.com/opennem/opennem/issues/674))
 
 ## SDK Releases
@@ -27,7 +28,7 @@ Stay up to date with the latest features, improvements, and bug fixes in Open El
 ### [Python client](https://github.com/opennem/openelectricity-python): `openelectricity` 0.12.0
 
 - `MarketMetric.SOLAR_ROOFTOP_FORECAST`, the `30m` interval, `forecast_run_time` on response series, and a `rooftop_forecast` example
-- **Breaking:** `to_records()`, `to_pandas()` and `to_polars()` now report intervals in network time. 0.11.x reported them 10 hours late for the NEM, so remove any -10h compensation. Rows gain the `region`, `status` and `unit_code` columns, and `to_polars()` keeps every metric
+- **Breaking:** `to_records()`, `to_pandas()` and `to_polars()` now report intervals in network time; they had been 10 hours late for the NEM. Remove any offset you applied to compensate. Rows also gain the `region`, `status` and `unit_code` columns, and `to_polars()` keeps every metric
 - New opt-in `merge_metrics=True` on `to_records()`, `to_pandas()` and `to_polars()` puts every metric for an interval and grouping on one row. The default stays one row per value
 - Series expose `date_start` / `date_end` and results expose `columns.region`, matching the API. `start`, `end` and `columns.network_region` still work as deprecated aliases
 
