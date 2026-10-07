@@ -4,6 +4,14 @@ title: 'Python Client Reference'
 icon: 'book'
 ---
 
+<Warning>
+**Upgrading to 0.12.** Version 0.12.0 fixes the data frame output, which changes it. See the [changelog](https://github.com/opennem/openelectricity-python/blob/main/CHANGELOG.md#0120).
+
+- `to_records()`, `to_pandas()` and `to_polars()` report `interval` in network time. 0.11.x reported it 10 hours late for the NEM; remove any -10h compensation you added.
+- Records gain the `region`, `status` and `unit_code` grouping columns that 0.11.x dropped.
+- `to_polars()` keeps every metric. 0.11.x dropped metrics whose rows started after the first 100.
+</Warning>
+
 # Client Initialization
 
 The Python SDK provides both synchronous and asynchronous clients.
