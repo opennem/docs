@@ -1,0 +1,140 @@
+---
+title: Forecasts
+description: AEMO forecasts in the Open Electricity API, starting with rooftop solar
+icon: "forward"
+---
+
+<Note>Forecasts are currently only available on the NEM network. WEM requests return no rows.</Note>
+
+## What are Forecast Metrics?
+
+Forecast metrics carry AEMO's outlook for the coming days alongside the measured data. Their names end in `_forecast`, they are served from the market endpoint `/v4/market/network/{network_code}`, and they work like any other market metric with a few additions: `date_end` can be in the future, and each response block records which forecast run it came from.
+
+| Metric | Unit | AEMO source | Resolution | Horizon | Issued |
+|---|---|---|---|---|---|
+| `solar_rooftop_forecast` | MW | `ROOFTOP_PV/FORECAST`, `POWERMEAN` | 30 minutes | ~8 days | every ~30 minutes |
+
+## Rooftop Solar Forecast
+
+Rooftop solar actuals are AEMO estimates published for each half hour, and they land 30 to 60 minutes behind the 5-minute dispatch data. Charting the last few hours of generation therefore leaves rooftop solar short at the leading edge. `solar_rooftop_forecast` fills that gap from the last actual interval forward and continues about 8 days ahead.
+
+The value is AEMO's mean forecast (`POWERMEAN`) from the `ROOFTOP_PV/FORECAST` report, published for each NEM region roughly every 30 minutes.
+
+### Intervals
+
+| Interval | Value |
+|---|---|
+| `30m` | AEMO's native half-hourly forecast |
+| `5m` | Each 30-minute value repeated across its six 5-minute intervals |
+| `1h`, `1d` | Average of the 5-minute values |
+
+At `5m` a value labelled 10:30 covers 10:30 to 10:55. This is how the actual rooftop solar series is served, and forecast and actuals share AEMO's timestamp convention, so the two splice interval for interval without a seam.
+
+### Groupings
+
+Group with `primary_grouping=network` or `primary_grouping=network_region`. The network total is the sum of the five NEM regions and is published for intervals where every region has a forecast. Other intervals are `null`.
+
+### Dates
+
+- `date_start` defaults to the last completed interval.
+- `date_end` defaults to the end of the latest forecast run. It can be in the future and is capped at the latest forecast interval, not the latest settled actual.
+- A window in the past returns the most recent forecast issued for each interval.
+- Forecast and actual metrics can be requested together. Each keeps its own default dates and cap, so a forecast series can run past the end of an actual one in the same response.
+- [Data limits](/api-reference/data-limits) per interval apply as usual.
+
+### Forecast run time
+
+Every forecast metric block in the response carries `forecast_run_time`: the issue time of the newest AEMO run used, as an ISO 8601 timestamp with the network offset. Rows are `[timestamp, value]` pairs, so the run time is reported once per block. It is `null` when the values come from history loaded before run times were recorded (before October 2026). Blocks for non-forecast metrics do not include it.
+
+```json
+{
+  "network_code": "NEM",
+  "metric": "solar_rooftop_forecast",
+  "unit": "MW",
+  "interval": "5m",
+  "date_start": "2026-10-06T10:30:00+10:00",
+  "date_end": "2026-10-14T10:00:00+10:00",
+  "forecast_run_time": "2026-10-06T10:30:00+10:00",
+  "results": [
+    {
+      "name": "solar_rooftop_forecast_NSW1",
+      "columns": { "region": "NSW1" },
+      "data": [
+        ["2026-10-06T10:30:00+10:00", 5120.5],
+        ["2026-10-06T10:35:00+10:00", 5120.5]
+      ]
+    }
+  ],
+  "network_timezone_offset": "+10:00"
+}
+```
+
+## Splicing Forecast onto Actuals
+
+To draw rooftop solar up to now and beyond:
+
+1. Fetch actuals from `/v4/data/network/NEM?metrics=power&fueltech=solar_rooftop&interval=5m`.
+2. Take the timestamp of the last actual value that is not `null`.
+3. Fetch `solar_rooftop_forecast` at `interval=5m` with `date_start` set to that timestamp, in network time without an offset.
+4. Use the actual where there is one and the forecast where there isn't.
+
+<CodeGroup dropdown>
+
+```typescript rooftop_forecast.ts
+import { OpenElectricityClient, stripTimezone } from "openelectricity"
+
+const client = new OpenElectricityClient()
+
+const { response: actual } = await client.getNetworkData("NEM", ["power"], {
+  interval: "5m",
+  fueltech: ["solar_rooftop"],
+})
+const actualPoints = actual.data[0].results[0].data.filter(([, v]) => v !== null)
+const lastActual = actualPoints[actualPoints.length - 1][0]
+
+const { response: forecast } = await client.getMarket("NEM", ["solar_rooftop_forecast"], {
+  interval: "5m",
+  dateStart: stripTimezone(lastActual),
+})
+
+const spliced = new Map(forecast.data[0].results[0].data.map(([ts, v]) => [Date.parse(ts), v]))
+for (const [ts, v] of actualPoints) spliced.set(Date.parse(ts), v)
+```
+
+```python rooftop_forecast.py
+from openelectricity import OEClient
+from openelectricity.types import DataMetric, MarketMetric, UnitFueltechType
+
+with OEClient() as client:
+    actual = client.get_network_data(
+        network_code="NEM",
+        metrics=[DataMetric.POWER],
+        interval="5m",
+        fueltech=[UnitFueltechType.SOLAR_ROOFTOP],
+    )
+    actual_points = [p for p in actual.data[0].results[0].data if p.value is not None]
+
+    forecast = client.get_market(
+        network_code="NEM",
+        metrics=[MarketMetric.SOLAR_ROOFTOP_FORECAST],
+        interval="5m",
+        date_start=actual_points[-1].timestamp.replace(tzinfo=None),
+    )
+
+    spliced = {p.timestamp: p.value for p in forecast.data[0].results[0].data}
+    spliced.update({p.timestamp: p.value for p in actual_points})
+```
+
+</CodeGroup>
+
+`solar_rooftop_forecast`, the `30m` interval and `forecast_run_time` need TypeScript SDK 0.10.0 or Python SDK 0.12.0. Both repositories include a runnable `rooftop_forecast` example.
+
+## Coming Later: Predispatch Forecasts
+
+AEMO's `PREDISPATCH` forecasts of price, demand and generation, about 40 hours ahead, will be added as further `_forecast` metrics on the same endpoints with the same `forecast_run_time` and future `date_end` handling. Progress is tracked in [#500](https://github.com/opennem/opennem/issues/500).
+
+## Further Reading
+
+- [AEMO rooftop PV forecast reports](https://www.nemweb.com.au/Reports/CURRENT/ROOFTOP_PV/FORECAST/) on NEMweb
+- [Demand guide](/guides/demand) for how rooftop solar feeds gross demand
+- [Metrics & Aggregation](/api-reference/metrics) for units and aggregation rules

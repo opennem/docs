@@ -97,6 +97,8 @@ const metrics = datatable.getMetrics()
 const latestTime = datatable.getLatestTimestamp()
 ```
 
+Grouping values come through as columns named after the `columns` keys the API returns: `primaryGrouping: "network_region"` gives a `region` column, and secondary groupings give `fueltech`, `fueltech_group`, `renewable` or `status`.
+
 #### Filtering
 
 Filter rows based on a condition:
@@ -106,7 +108,7 @@ Filter rows based on a condition:
 const highPower = datatable.filter(row => (row.power as number) > 1000)
 
 // Filter for specific region
-const nswData = datatable.filter(row => row.network_region === "NSW1")
+const nswData = datatable.filter(row => row.region === "NSW1")
 ```
 
 #### Selecting Columns
@@ -115,7 +117,7 @@ Select specific columns to work with:
 
 ```typescript
 // Select only power and region columns
-const powerByRegion = datatable.select(["interval", "power", "network_region"])
+const powerByRegion = datatable.select(["interval", "power", "region"])
 ```
 
 #### Grouping and Aggregation
@@ -124,11 +126,11 @@ Group data and calculate aggregates:
 
 ```typescript
 // Calculate sum by region
-const totalByRegion = datatable.groupBy(["network_region"], "sum")
+const totalByRegion = datatable.groupBy(["region"], "sum")
 
 // Calculate mean by region and fuel technology
 const avgByRegionAndFuel = datatable.groupBy(
-  ["network_region", "fueltech"],
+  ["region", "fueltech"],
   "mean"
 )
 ```
@@ -146,7 +148,7 @@ Sort data by one or more columns:
 const highestFirst = datatable.sortBy(["power"], false)
 
 // Sort by region, then by power
-const sortedData = datatable.sortBy(["network_region", "power"])
+const sortedData = datatable.sortBy(["region", "power"])
 ```
 
 #### Statistical Analysis
@@ -197,7 +199,7 @@ type NetworkCode = "NEM" | "WEM" | "AU"
 Supported time intervals for data aggregation:
 
 ```typescript
-type DataInterval = "5m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
+type DataInterval = "5m" | "30m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
 ```
 
 ### Metric Types
@@ -215,8 +217,10 @@ type DataMetric = "power" | "energy" | "emissions" | "market_value"
 Metrics available for market data:
 
 ```typescript
-type MarketMetric = "price" | "demand" | "demand_energy"
+type MarketMetric = "price" | "demand" | "demand_energy" | ... | "solar_rooftop_forecast"
 ```
+
+See the [Type Reference](/sdk/typescript/types#marketmetric) for the full list.
 
 ### Response Types
 
@@ -298,10 +302,10 @@ const { datatable } = await client.getNetworkData("NEM", ["emissions", "energy"]
 
 // Calculate regional emission factors
 const avgByRegion = datatable
-  .groupBy(["network_region"], "mean")
+  .groupBy(["region"], "mean")
   .getRows()
   .map(row => ({
-    network_region: row.network_region,
+    region: row.region,
     avg_emission_factor: ((row.emissions as number) / (row.energy as number)).toFixed(3),
   }))
 ```

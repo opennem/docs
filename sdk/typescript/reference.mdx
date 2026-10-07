@@ -119,6 +119,7 @@ async getMarket(
   - Curtailment power (MW): `"curtailment"`, `"curtailment_solar_utility"`, `"curtailment_wind"`
   - Curtailment energy (MWh): `"curtailment_energy"`, `"curtailment_solar_utility_energy"`, `"curtailment_wind_energy"`
   - Flows: `"flow_imports"`, `"flow_exports"` (and their `_energy` variants)
+  - Forecasts: `"solar_rooftop_forecast"` (MW, NEM only, accepts a future `dateEnd`, see the [Forecasts guide](/guides/forecast))
 - `params`: Optional parameters:
   - `interval`, `dateStart`, `dateEnd`
   - `primaryGrouping`: `"network"` or `"network_region"`

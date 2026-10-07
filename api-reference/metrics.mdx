@@ -4,7 +4,7 @@ description: 'Metric definitions, units, and how each metric aggregates across t
 icon: 'function'
 ---
 
-The Open Electricity API exposes time-series data for the NEM and WEM networks at multiple intervals: 5-minute (`interval`), hourly (`hour`), daily (`day`), weekly (`week`), monthly (`month`), quarterly (`quarter`), seasonal (`season`), and yearly (`year`). The **5-minute interval is the source resolution** — every longer interval is aggregated from those 5-minute records.
+The Open Electricity API exposes time-series data for the NEM and WEM networks at multiple intervals: 5-minute (`5m`), 30-minute (`30m`), hourly (`1h`), daily (`1d`), weekly (`7d`), monthly (`1M`), quarterly (`3M`), seasonal (`season`), yearly (`1y`) and financial year (`fy`). The **5-minute interval is the source resolution** — every longer interval is aggregated from those 5-minute records.
 
 How a metric aggregates depends on whether it is a **rate** (e.g. power in MW — an instantaneous measurement) or a **quantity** (e.g. energy in MWh — accumulated over an interval).
 
@@ -25,7 +25,7 @@ This page lists every metric returned by the API along with its unit, type, and 
 
 ### Aggregation details
 
-- **Hourly (`hour`)** queries read from the 5-minute base table (`unit_intervals`) and apply `avg()` or `sum()` directly across the twelve 5-minute records in each hour.
+- **30-minute and hourly (`30m`, `1h`)** queries read from the 5-minute base table (`unit_intervals`) and apply `avg()` or `sum()` directly across the six or twelve 5-minute records in each bucket.
 - **Daily and longer (`day`, `week`, `month`, `quarter`, `season`, `year`)** queries read from the daily materialised view (`unit_intervals_daily_mv`). The daily MV stores `generated` as the daily **sum** of 5-minute power values plus an `interval_count` column. For `power`, the API computes an interval-weighted average across the queried daily rows:
 
   ```
@@ -73,6 +73,7 @@ See the [Energy guide](/guides/energy) for the full derivation and worked exampl
 | `flow_exports_energy` | MWh | Quantity | **Sum** |
 | `renewable_proportion` | % | Ratio | `sum(generation_renewable) / sum(demand_gross) × 100` over the queried window |
 | `renewable_with_storage_proportion` | % | Ratio | `sum(generation_renewable_with_storage) / sum(demand_gross) × 100` over the queried window |
+| `solar_rooftop_forecast` | MW | Rate | **Average** of 5-minute values. NEM only, see [Forecast metrics](#forecast-metrics) |
 
 ### `price` aggregation
 
@@ -81,6 +82,10 @@ See the [Energy guide](/guides/energy) for the full derivation and worked exampl
 ### Proportion metrics
 
 `renewable_proportion` and `renewable_with_storage_proportion` are ratios computed over the *whole* queried window per row, not averaged from the underlying 5-minute proportions. The sums of the numerator and denominator are taken first, then divided.
+
+### Forecast metrics
+
+`solar_rooftop_forecast` is AEMO's 30-minute rooftop solar forecast. `30m` returns the native value, `5m` repeats each 30-minute value across its six 5-minute intervals, and `1h` and longer average the 5-minute values. Forecast metrics accept a `date_end` in the future and each response block carries `forecast_run_time`. See the [Forecasts guide](/guides/forecast).
 
 ## Aggregation correctness
 

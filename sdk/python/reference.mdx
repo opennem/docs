@@ -4,6 +4,14 @@ title: 'Python Client Reference'
 icon: 'book'
 ---
 
+<Warning>
+**Upgrading to 0.12.** Version 0.12.0 fixes the data frame output, which changes it. See the [changelog](https://github.com/opennem/openelectricity-python/blob/main/CHANGELOG.md#0120).
+
+- `to_records()`, `to_pandas()` and `to_polars()` report `interval` in network time. 0.11.x reported it 10 hours late for the NEM; remove any -10h compensation you added.
+- Records gain the `region`, `status` and `unit_code` grouping columns that 0.11.x dropped.
+- `to_polars()` keeps every metric. 0.11.x dropped metrics whose rows started after the first 100.
+</Warning>
+
 # Client Initialization
 
 The Python SDK provides both synchronous and asynchronous clients.
@@ -175,6 +183,9 @@ def get_market(
 - `MarketMetric.FLOW_IMPORTS` / `MarketMetric.FLOW_IMPORTS_ENERGY` - Region imports (MW / MWh)
 - `MarketMetric.FLOW_EXPORTS` / `MarketMetric.FLOW_EXPORTS_ENERGY` - Region exports (MW / MWh)
 
+**Forecasts:**
+- `MarketMetric.SOLAR_ROOFTOP_FORECAST` - AEMO rooftop solar forecast (MW, NEM only). Accepts a future `date_end`, and each series carries `forecast_run_time`. See the [Forecasts guide](/guides/forecast)
+
 ### Examples
 
 **Fetch Real-time Curtailment (5-minute intervals):**
@@ -201,7 +212,7 @@ response = client.get_market(
 data = []
 for timeseries in response.data:
     for result in timeseries.results:
-        region = result.name.split("_")[-1]  # Extract region from name
+        region = result.columns.region
         for data_point in result.data:
             data.append({
                 "timestamp": data_point.timestamp,
@@ -234,7 +245,7 @@ response = client.get_market(
 for timeseries in response.data:
     print(f"\nMetric: {timeseries.metric} ({timeseries.unit})")
     for result in timeseries.results:
-        region = result.name.split("_")[-1]
+        region = result.columns.region
         total = sum(dp.value for dp in result.data if dp.value)
         print(f"  {region}: {total:,.0f} {timeseries.unit}")
 ```
@@ -259,7 +270,7 @@ import pandas as pd
 data = []
 for timeseries in response.data:
     for result in timeseries.results:
-        region = result.name.split("_")[-1]
+        region = result.columns.region
         for data_point in result.data:
             data.append({
                 "timestamp": data_point.timestamp,
@@ -349,15 +360,19 @@ for facility in response.data:
 
 # Data Analysis
 
+## Response Fields
+
+Each series in `response.data` carries `date_start` and `date_end` for its data range, and each result carries its grouping values in `result.columns`: `region` for `primary_grouping="network_region"`, `fueltech`, `fueltech_group`, `renewable` or `status` for secondary groupings, and `unit_code` for facility data. Timestamps are network-local with an offset, e.g. `2026-10-05T00:00:00+10:00`.
+
+`series.start`, `series.end` and `result.columns.network_region` are deprecated aliases of `date_start`, `date_end` and `region`. They hold the same values and emit a `DeprecationWarning`.
+
 ## Converting to DataFrames
 
-The SDK provides built-in support for converting responses to Pandas and Polars DataFrames.
+`to_records()`, `to_pandas()` and `to_polars()` return one row per value by default: `interval` (the network-local time as a naive datetime), the grouping columns such as `region`, and the value under its metric name. Pass `merge_metrics=True` for one row per interval and grouping with a column per metric.
 
 ### Pandas Integration
 
 ```python
-import pandas as pd
-
 # Get market data
 response = client.get_market(
     network_code="NEM",
@@ -368,22 +383,11 @@ response = client.get_market(
     primary_grouping="network_region"
 )
 
-# Convert to DataFrame
-data = []
-for timeseries in response.data:
-    for result in timeseries.results:
-        for data_point in result.data:
-            data.append({
-                "timestamp": data_point.timestamp,
-                "metric": timeseries.metric,
-                "value": data_point.value,
-                "unit": timeseries.unit
-            })
-
-df = pd.DataFrame(data)
+# One row per interval and region. Columns: interval, region, price, demand
+df = response.to_pandas(merge_metrics=True)
 
 # Analyze
-print(df.groupby("metric")["value"].describe())
+print(df.groupby("region")[["price", "demand"]].describe())
 ```
 
 ### Polars Integration
@@ -391,19 +395,16 @@ print(df.groupby("metric")["value"].describe())
 ```python
 import polars as pl
 
-# Same data structure as above
-df = pl.DataFrame(data)
+df = response.to_polars(merge_metrics=True)
 
 # Fast aggregations with Polars
 result = (
-    df.lazy()
-    .groupby(["metric"])
-    .agg([
-        pl.col("value").mean().alias("avg"),
-        pl.col("value").max().alias("max"),
-        pl.col("value").min().alias("min")
-    ])
-    .collect()
+    df.group_by("region")
+    .agg(
+        pl.col("price").mean().alias("avg_price"),
+        pl.col("demand").max().alias("max_demand"),
+    )
+    .sort("region")
 )
 ```
 

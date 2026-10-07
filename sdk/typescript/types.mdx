@@ -27,10 +27,11 @@ type NetworkCode = "NEM" | "WEM" | "AU"
 Supported time intervals for data aggregation:
 
 ```typescript
-type DataInterval = "5m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
+type DataInterval = "5m" | "30m" | "1h" | "1d" | "7d" | "1M" | "3M" | "season" | "1y" | "fy"
 ```
 
 - `5m`: 5-minute intervals
+- `30m`: 30-minute intervals
 - `1h`: Hourly intervals
 - `1d`: Daily intervals
 - `7d`: Weekly intervals
@@ -92,6 +93,7 @@ type MarketMetric =
   | "flow_exports"
   | "flow_imports_energy"
   | "flow_exports_energy"
+  | "solar_rooftop_forecast"
 ```
 
 **Price and Demand:**
@@ -117,6 +119,9 @@ type MarketMetric =
 **Interconnector Flows:**
 - `flow_imports` / `flow_imports_energy`: Region imports (MW / MWh)
 - `flow_exports` / `flow_exports_energy`: Region exports (MW / MWh)
+
+**Forecasts:**
+- `solar_rooftop_forecast`: AEMO rooftop solar forecast (MW, NEM only). Accepts a future `dateEnd`. See the [Forecasts guide](/guides/forecast)
 
 ## Grouping Types
 
@@ -303,13 +308,22 @@ interface INetworkTimeSeries {
   metric: Metric
   unit: string
   interval: DataInterval
+  date_start?: string
+  date_end?: string
+  /** @deprecated use date_start */
   start: string
+  /** @deprecated use date_end */
   end: string
   groupings: DataPrimaryGrouping[] | DataSecondaryGrouping[]
   results: ITimeSeriesResult[]
   network_timezone_offset: string
+  forecast_run_time?: string | null
 }
 ```
+
+`date_start` and `date_end` are the keys the API returns, and the client sets them on every series. `start` and `end` are deprecated aliases that the client fills with the same values, so existing code keeps working. Each result's grouping values are in `columns`, e.g. `{ region: "NSW1" }`.
+
+`forecast_run_time` is the issue time of the newest forecast run used, as an ISO 8601 timestamp with the network offset. It is only present on forecast metric series, and is `null` when the values come from history loaded before run times were recorded (before October 2026).
 
 ### IFacility
 
