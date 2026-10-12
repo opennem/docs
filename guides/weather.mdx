@@ -62,10 +62,7 @@ Tracked in `at_facility_intervals`:
 
 ### API Endpoints
 
-```
-GET /v4/stats/emissionfactor/network/{network_code} - Get emission factors
-GET /v4/stats/emissionfactor/network/{network_code}/{network_region_code} - Get regional factors
-```
+Emission factors and emissions are available through the data endpoints, through the `emissions` metric on `GET /v4/data/network/{network_code}`. The legacy `/v4/stats/emissionfactor/*` routes have been retired and return `410 Gone`.
 
 ## Best Practices
 

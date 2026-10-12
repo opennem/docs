@@ -6,6 +6,35 @@ icon: 'calendar'
 
 Stay up to date with the latest features, improvements, and bug fixes in Open Electricity.
 
+<Update label="v4.5.18" description="October 12, 2026" tags={["API", "Performance"]}>
+
+## Performance
+
+- **Faster data and facilities responses under load** - Repeat requests to `/v4/data`, `/v4/market` and `/v4/facilities` are now served from the cache as ready-made responses, cutting the work per cached request from tens of milliseconds to under one. Busy periods no longer slow other endpoints ([#722](https://github.com/opennem/opennem/pull/722), [#723](https://github.com/opennem/opennem/pull/723))
+- **Station power and energy cached for five minutes** - `/v4/stats/power/station` and `/v4/stats/energy/station` now return cached results for up to five minutes ([#721](https://github.com/opennem/opennem/pull/721))
+- **Faster facility pollution** - Pollution responses are cached and the underlying query is narrower, taking the default request from about 1.3 seconds to a cache hit ([#690](https://github.com/opennem/opennem/issues/690), [#701](https://github.com/opennem/opennem/issues/701))
+- **Faster API key checks** - Key and account lookups are cached for up to five minutes and shared between concurrent requests, so slow upstream lookups no longer delay your calls. `/v4/me` still reads your account fresh on every call ([#688](https://github.com/opennem/opennem/pull/688))
+- **Faster metrics endpoint** - `/v4/metrics` returns a pre-built response ([#689](https://github.com/opennem/opennem/pull/689))
+
+## Fixes
+
+- **Facilities and units are returned in a stable order** - Facilities are ordered by code and units by unit code, so identical requests return identical responses ([#691](https://github.com/opennem/opennem/issues/691))
+- **Unit dates use the correct network timezone** - Unit date fields could be offset by the wrong timezone (+08:00 or +10:00) depending on which facility had been loaded first. Each unit now uses its own network's timezone ([#694](https://github.com/opennem/opennem/issues/694))
+- **Commissioning and closure dates are local midnight** - Dates entered in the CMS now come back as midnight in the network's local time (for example `+10:00` for the NEM) rather than a shifted instant. The calendar date is unchanged ([#695](https://github.com/opennem/opennem/pull/695))
+- **Milestone record requests no longer error** - A single record request without `include_history` returned a `500` ([#679](https://github.com/opennem/opennem/issues/679))
+
+## API
+
+- **Retired stats routes return `410 Gone`** - The legacy `/stats`, `/v3/stats` and `/v4/stats` routes other than the v4 station power and energy routes no longer serve data, and now answer `410` immediately without needing an API key ([#649](https://github.com/opennem/opennem/issues/649), [#725](https://github.com/opennem/opennem/pull/725))
+- **Unknown facility and unit codes return `404`** - Requests for a facility or unit code that does not exist now return `404` straight away, before any data lookup, for callers with a valid API key ([#646](https://github.com/opennem/opennem/issues/646), [#725](https://github.com/opennem/opennem/pull/725))
+
+## Reliability
+
+- **Fewer data-collection pauses** - Background export and crawl work no longer blocks other jobs, so exports and the latest data refresh on time ([#703](https://github.com/opennem/opennem/issues/703), [#705](https://github.com/opennem/opennem/issues/705), [#709](https://github.com/opennem/opennem/issues/709), [#713](https://github.com/opennem/opennem/issues/713))
+- **API keys are no longer written to logs** - Failed-auth paths logged the raw key. They now log a short fingerprint only ([#698](https://github.com/opennem/opennem/pull/698))
+
+</Update>
+
 <Update label="v4.5.17" description="October 7, 2026" tags={["API", "Data", "SDK"]}>
 
 ## Rooftop Solar Forecast
